@@ -15,9 +15,7 @@ VRAM  EQU 0x0ff8 ; 图像缓冲区的开始地址
 
 	ORG 0xc200
 
-
-
-	MOV AL,0x13
+	MOV AL,0x13	;VGA显卡，320*200*8位色彩
 	MOV AH,0x00
 	INT 0x10
 	MOV BYTE [VMODE],8 ;记录画面模式
