@@ -1,6 +1,9 @@
 ; haribote-ipl
 ; TAB=4
 
+; 读入18个扇区，10个柱面
+
+
 CYLS EQU 10 ;CYLS=10 10个柱面
 
 	ORG 0x7c00 ; 代码的机器语言装载到0x7c00
