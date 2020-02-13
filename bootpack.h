@@ -11,7 +11,7 @@ struct BOOTINFO { /* 0x0ff0-0x0fff */
 #define ADR_BOOTINFO	0x00000ff0
 
 //naskfunc.nas
-//CÓïÑÔÊµÏÖ²»ÁËµÄº¯Êı ÓÃ»ã±àÊµÏÖ
+//Cè¯­è¨€å®ç°ä¸äº†çš„å‡½æ•° ç”¨æ±‡ç¼–å®ç°
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
@@ -22,13 +22,16 @@ int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
+int load_cr0(void);
+void store_cr0(int cr0);
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
+unsigned int memtest_sub(unsigned int start, unsigned int end);
 
 //fifo.c
 struct FIFO8 {
-	unsigned char *buf; //FIFO8ËùÔÚµØÖ·Ö¸Õë
+	unsigned char *buf; //FIFO8æ‰€åœ¨åœ°å€æŒ‡é’ˆ
 	int p, q, size, free, flags;
 };
 void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
@@ -47,31 +50,31 @@ void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize,
 	int pysize, int px0, int py0, char *buf, int bxsize);
 	
-#define COL8_000000		0	/*  0:ºÚ */
-#define COL8_FF0000		1	/*  1:ÁÁºì */
-#define COL8_00FF00		2	/*  2:ÁÁ¾v */
-#define COL8_FFFF00		3	/*  3:ÁÁ»Æ */
-#define COL8_0000FF		4	/*  4:ÁÁÀ¶ */
-#define COL8_FF00FF		5	/*  5:ÁÁ×Ï */
-#define COL8_00FFFF		6	/*  6:Ç³ÁÁÀ¶ */
-#define COL8_FFFFFF		7	/*  7:°× */
-#define COL8_C6C6C6		8	/*  8:ÁÁ»Ò */
-#define COL8_840000		9	/*  9:°µºì */
-#define COL8_008400		10	/* 10:°µ¾v */
-#define COL8_848400		11	/* 11:°µ»Æ */
-#define COL8_000084		12	/* 12:°µÇà */
-#define COL8_840084		13	/* 13:°µ×Ï */
-#define COL8_008484		14	/* 14:Ç³°µÀ¶ */
-#define COL8_848484		15	/* 15:°µ»Ò */
+#define COL8_000000		0	/*  0:é»‘ */
+#define COL8_FF0000		1	/*  1:äº®çº¢ */
+#define COL8_00FF00		2	/*  2:äº®ç·‘ */
+#define COL8_FFFF00		3	/*  3:äº®é»„ */
+#define COL8_0000FF		4	/*  4:äº®è“ */
+#define COL8_FF00FF		5	/*  5:äº®ç´« */
+#define COL8_00FFFF		6	/*  6:æµ…äº®è“ */
+#define COL8_FFFFFF		7	/*  7:ç™½ */
+#define COL8_C6C6C6		8	/*  8:äº®ç° */
+#define COL8_840000		9	/*  9:æš—çº¢ */
+#define COL8_008400		10	/* 10:æš—ç·‘ */
+#define COL8_848400		11	/* 11:æš—é»„ */
+#define COL8_000084		12	/* 12:æš—é’ */
+#define COL8_840084		13	/* 13:æš—ç´« */
+#define COL8_008484		14	/* 14:æµ…æš—è“ */
+#define COL8_848484		15	/* 15:æš—ç° */
 
 // dsctbl.c
-struct SEGMENT_DESCRIPTOR {	// GDTµÄ8×Ö½ÚÄÚÈİ
+struct SEGMENT_DESCRIPTOR {	// GDTçš„8å­—èŠ‚å†…å®¹
 	short limit_low, base_low;
 	char base_mid, access_right;
 	char limit_high, base_high;
 };
 
-struct GATE_DESCRIPTOR { //IDTµÄ8×Ö½ÚÄÚÈİ
+struct GATE_DESCRIPTOR { //IDTçš„8å­—èŠ‚å†…å®¹
 	short offset_low, selector;
 	char dw_count, access_right;
 	short offset_high;
@@ -92,8 +95,6 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 
 //int.c
 void init_pic(void);
-void inthandler21(int *esp);
-void inthandler27(int *esp);
 void inthandler2c(int *esp);
 #define PIC0_ICW1		0x0020
 #define PIC0_OCW2		0x0020
@@ -107,3 +108,62 @@ void inthandler2c(int *esp);
 #define PIC1_ICW2		0x00a1
 #define PIC1_ICW3		0x00a1
 #define PIC1_ICW4		0x00a1
+
+//keyboard.c
+void inthandler21(int *esp);
+void wait_KBC_sendready(void);
+void init_keyboard(void);
+extern struct FIFO8 keyfifo;
+#define PORT_KEYDAT		0x0060
+#define PORT_KEYCMD		0x0064
+
+//mouse.c
+struct MOUSE_DEC {
+	unsigned char buf[3], phase;
+	int x, y, btn;
+};
+void inthandler2c(int *esp);
+void enable_mouse(struct MOUSE_DEC *mdec);
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
+extern struct FIFO8 mousefifo;
+
+//memory.c
+#define MEMMAN_FREES 4090 //å¤§æ¦‚å¯ä»¥ç®¡ç†32KB
+#define MEMMAN_ADDR 0x003c0000
+
+struct FREEINFO { //å¯ç”¨ä¿¡æ¯
+	unsigned int addr, size;
+};
+
+struct MEMMAN { //å†…å­˜ç®¡ç†
+	int frees, maxfrees, lostsize, losts;
+	struct FREEINFO free[MEMMAN_FREES];
+};
+
+unsigned int memtest(unsigned int start, unsigned int end);
+void memman_init(struct MEMMAN *man);
+unsigned int memman_total(struct MEMMAN *man);
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
+unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
+int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
+
+//sheet.c
+#define MAX_SHEETS 256
+struct SHEET {
+	unsigned char *buf;
+	int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+};
+struct SHTCTL {
+	unsigned char *vram;
+	int xsize, ysize, top;//æœ€ä¸Šé¢å›¾å±‚çš„é«˜åº¦
+	struct SHEET *sheets[MAX_SHEETS];//æŒ‰å›¾å±‚é¡ºåº
+	struct SHEET sheets0[MAX_SHEETS];//æŒ‰åœ°å€é¡ºåº
+};
+struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
+struct SHEET *sheet_alloc(struct SHTCTL *ctl);
+void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv);
+void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height);
+void sheet_refresh(struct SHTCTL *ctl, struct SHEET *sht, int bx0, int by0, int bx1, int by1);
+void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0);
+void sheet_free(struct SHTCTL *ctl, struct SHEET *sht);

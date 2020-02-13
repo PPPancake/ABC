@@ -25,28 +25,6 @@ void init_pic(void) {
 
 #define PORT_KEYDAT		0x0060
 
-struct FIFO8 keyfifo;
-
-void inthandler21(int *esp) { //用于INT 0x21的中断处理程序
-	unsigned char data;
-	io_out8(PIC0_OCW2, 0x61);	/* 通知PIC IRQ01受理完毕，PIC持续监视IRQ1 */
-	data = io_in8(PORT_KEYDAT);
-	fifo8_put(&keyfifo, data);//缓冲区内存入数据
-	return;
-}
-
-struct FIFO8 mousefifo;
-
-void inthandler2c(int *esp) { //用于INT 0x2c的中断处理程序
-	//鼠标的中断号码是IRQ12
-	unsigned char data;
-	io_out8(PIC1_OCW2, 0x64); //通知PIC(从PIC)IRQ12受理完毕，PIC持续监控
-	io_out8(PIC0_OCW2, 0x62);//通知主PIC
-	data = io_in8(PORT_KEYDAT);
-	fifo8_put(&mousefifo, data);//缓冲区内存入数据
-	return;
-}
-
 void inthandler27(int *esp)
 /* PIC0からの不完全割り込み対策 */
 /* Athlon64X2機などではチップセットの都合によりPICの初期化時にこの割り込みが1度だけおこる */
