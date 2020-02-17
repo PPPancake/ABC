@@ -154,9 +154,9 @@ void sheet_updown(struct SHEET *sht, int height)  {
 				}
 			}
 			ctl->top--;
-		}
-		sheet_refreshmap(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, 0);
-		sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, 0, old - 1);
+			sheet_refreshmap(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, 0);
+			sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize, 0, old - 1);
+		}	
 	} else if (old < height) {//新指定的图层高度大于原来
 		if(old >= 0) {//原来不是隐藏状态
 			for (h = old; h < height; h++) {//中间的拉下去

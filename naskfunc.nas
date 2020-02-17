@@ -17,9 +17,9 @@
 	GLOBAL _io_load_eflags,_io_store_eflags
 	GLOBAL _load_gdtr, _load_idtr
 	GLOBAL _load_cr0, _store_cr0
-	GLOBAL _asm_inthandler21, _asm_inthandler27, _asm_inthandler2c
-	GLOBAL _memtest_sub;
-	EXTERN	_inthandler21, _inthandler27, _inthandler2c
+	GLOBAL _asm_inthandler20, _asm_inthandler21, _asm_inthandler27, _asm_inthandler2c
+	GLOBAL _memtest_sub
+	EXTERN _inthandler20,_inthandler21, _inthandler27, _inthandler2c
 
 ;实际函数
 [SECTION .text]
@@ -108,6 +108,21 @@ _store_cr0:	; void store_cr0(int cr0);
 	MOV CR0,EAX
 	RET
 
+_asm_inthandler20:
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler20
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		IRETD
 	
 _asm_inthandler21: ;中断处理完成后，必须使用IRETD指令
 	PUSH	ES ;将寄存器的值保存到栈里，另DS和ES = SS

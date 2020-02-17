@@ -5,6 +5,7 @@
 [BITS 32]
 	EXTERN	_load_gdtr
 	EXTERN	_load_idtr
+	EXTERN	_asm_inthandler20
 	EXTERN	_asm_inthandler21
 	EXTERN	_asm_inthandler27
 	EXTERN	_asm_inthandler2c
@@ -61,15 +62,20 @@ L11:
 	CALL	_load_idtr
 	PUSH	142
 	PUSH	16
+	PUSH	_asm_inthandler20
+	PUSH	2554112
+	CALL	_set_gatedesc
+	PUSH	142
+	PUSH	16
 	PUSH	_asm_inthandler21
 	PUSH	2554120
 	CALL	_set_gatedesc
+	ADD	ESP,40
 	PUSH	142
 	PUSH	16
 	PUSH	_asm_inthandler27
 	PUSH	2554168
 	CALL	_set_gatedesc
-	ADD	ESP,40
 	PUSH	142
 	PUSH	16
 	PUSH	_asm_inthandler2c
