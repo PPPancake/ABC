@@ -3,7 +3,7 @@
 
 #define FLAGS_OVERRUN 0x0001
 
-void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf)
+void fifo32_init(struct FIFO32 *fifo, int size, int *buf)
 { //初始化
 	fifo->size = size;
 	fifo->buf = buf;//缓冲区的地址
@@ -14,7 +14,7 @@ void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf)
 	return;
 }
 
-int fifo8_put(struct FIFO8 *fifo, unsigned char data) {//传送一字节的数据并保存
+int fifo32_put(struct FIFO32 *fifo, int data) {//传送一字节的数据并保存
 	if(fifo->free == 0) { //空余空间< 0 设flags = 1
 		fifo->flags |= FLAGS_OVERRUN;
 		return -1; //溢出返回-1
@@ -28,7 +28,7 @@ int fifo8_put(struct FIFO8 *fifo, unsigned char data) {//传送一字节的数据并保存
 	return 0;
 }
 
-int fifo8_get(struct FIFO8 *fifo) {//取出一字节的内容
+int fifo32_get(struct FIFO32 *fifo) {//取出一字节的内容
 	int data;
 	if(fifo->free == fifo->size) { //缓冲区为空返回-1
 		return -1;
@@ -42,6 +42,6 @@ int fifo8_get(struct FIFO8 *fifo) {//取出一字节的内容
 	return data;
 }
 
-int fifo8_status(struct FIFO8 *fifo) { //查看积攒了多少数据
+int fifo32_status(struct FIFO32 *fifo) { //查看积攒了多少数据
 	return fifo->size - fifo->free;
 }

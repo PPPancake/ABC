@@ -2,22 +2,27 @@
 
 #include "bootpack.h"
 
-struct FIFO8 mousefifo;
+struct FIFO32 *mousefifo;
+int mousedata0;
 
 void inthandler2c(int *esp) { //用于INT 0x2c的中断处理程序
 	//鼠标的中断号码是IRQ12
-	unsigned char data;
+	int data;
 	io_out8(PIC1_OCW2, 0x64); //通知PIC(从PIC)IRQ12受理完毕，PIC持续监控
 	io_out8(PIC0_OCW2, 0x62);//通知主PIC
 	data = io_in8(PORT_KEYDAT);
-	fifo8_put(&mousefifo, data);//缓冲区内存入数据
+	fifo32_put(mousefifo, data + mousedata0);//缓冲区内存入数据
 	return;
 }
 
 #define KEYCMD_SENDTO_MOUSE		0xd4
 #define MOUSECMD_ENABLE			0xf4 // 利用鼠标模式
 
-void enable_mouse(struct MOUSE_DEC *mdec) {
+void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec) {
+	//将FIFO缓冲区的信息保存到全局变量里
+	mousefifo = fifo;
+	mousedata0 = data0;
+	//初始化
 	wait_KBC_sendready();
 	io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
 	wait_KBC_sendready();
