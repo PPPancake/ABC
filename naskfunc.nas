@@ -17,8 +17,11 @@
 	GLOBAL _io_load_eflags,_io_store_eflags
 	GLOBAL _load_gdtr, _load_idtr
 	GLOBAL _load_cr0, _store_cr0
+	GLOBAL _load_tr
 	GLOBAL _asm_inthandler20, _asm_inthandler21, _asm_inthandler27, _asm_inthandler2c
 	GLOBAL _memtest_sub
+	GLOBAL _farjmp
+	GLOBAL _taskswitch4, _taskswitch3
 	EXTERN _inthandler20,_inthandler21, _inthandler27, _inthandler2c
 
 ;实际函数
@@ -203,4 +206,20 @@ mts_fin:
 	POP EBX
 	POP ESI
 	POP EDI
+	RET
+
+_load_tr:
+	LTR [ESP + 4]	;tr
+	RET
+	
+_taskswitch4:
+	JMP 4*8:0
+	RET
+	
+_taskswitch3:
+	JMP 3*8:0
+	RET
+	
+_farjmp:		; void farjmp(int eip, int cs);
+	JMP FAR [ESP + 4]			; eip, cs
 	RET

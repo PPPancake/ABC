@@ -87,6 +87,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout) {
 
 void inthandler20(int *esp) {
 	struct TIMER *timer;
+	char ts = 0;
 	io_out8(PIC0_OCW2, 0x60);
 	//把IRQ——00信号接受完的信息通知给PIC
 	timerctl.count++;
@@ -101,14 +102,20 @@ void inthandler20(int *esp) {
 		}
 		//超时
 		timer->flags = TIMER_FLAGS_ALLOC;
-		//到时就向缓冲区放8位的数据，这时缓冲区free=0
-		//到时后去掉线性表中的第一个timer
-		fifo32_put(timer->fifo, timer->data);
+		if (timer != mt_timer) {
+			//到时就向缓冲区放8位的数据，这时缓冲区free=0
+			//到时后去掉线性表中的第一个timer
+			fifo32_put(timer->fifo, timer->data);
+		} else {
+			ts = 1; /* mt_timer超时 */
+		}
 		timer = timer->next;
 	}
 	timerctl.t0 = timer;
-	
 	//设定新的next
 	timerctl.next = timer->timeout;
+	if (ts != 0) {
+		mt_taskswitch();
+	}
 	return;
 }
