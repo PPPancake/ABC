@@ -102,7 +102,7 @@ void inthandler20(int *esp) {
 		}
 		//超时
 		timer->flags = TIMER_FLAGS_ALLOC;
-		if (timer != mt_timer) {
+		if (timer != task_timer) {
 			//到时就向缓冲区放8位的数据，这时缓冲区free=0
 			//到时后去掉线性表中的第一个timer
 			fifo32_put(timer->fifo, timer->data);
@@ -115,7 +115,7 @@ void inthandler20(int *esp) {
 	//设定新的next
 	timerctl.next = timer->timeout;
 	if (ts != 0) {
-		mt_taskswitch();
+		task_switch();
 	}
 	return;
 }

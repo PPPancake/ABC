@@ -86,6 +86,7 @@ clean:
 	-$(DEL) bootpack.hrb
 	-$(DEL) haribote.sys
 
-src_only:
+c:
+#src_only:
 	$(MAKE) clean
 	-$(DEL) haribote.img
